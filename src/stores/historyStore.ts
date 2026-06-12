@@ -51,7 +51,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
     })),
 
   clearHistory: () => {
-    try { localStorage.removeItem(STORAGE_KEY) } catch {}
+    try { localStorage.removeItem(STORAGE_KEY) } catch (e) { console.error('[historyStore] Failed to clear history', e) }
     set({ items: [] })
   },
 
@@ -85,7 +85,8 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         const local = loadFromLocalStorage()
         set({ items: local, isLoading: false })
       }
-    } catch {
+    } catch (e) {
+      console.error('[historyStore] Failed to load from Firestore', e)
       const local = loadFromLocalStorage()
       set({ items: local, isLoading: false })
     }

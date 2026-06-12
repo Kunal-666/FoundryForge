@@ -58,7 +58,7 @@ export function Conversation() {
             setInitialized(true)
             return
           }
-        } catch {}
+        } catch (e) { console.error('[Conversation] Failed to load session', e) }
       }
 
       setInitialized(true)
@@ -66,6 +66,11 @@ export function Conversation() {
 
     load()
   }, [id])
+
+  useEffect(() => {
+    const s = getCurrentSession()
+    document.title = s ? `${s.title} - FoundryForge` : 'Session - FoundryForge'
+  })
 
   // Show wizard for architecture sessions in idle state
   useEffect(() => {

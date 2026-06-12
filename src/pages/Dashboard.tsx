@@ -216,11 +216,12 @@ export function Dashboard() {
   const activeTab = searchParams.get('tab') || 'new'
   const activeSessionId = searchParams.get('session')
   const { createSession, setCurrentSession } = useSessionStore()
-  const { items: historyItems, clearHistory, loadFromFirestore, refreshFromStorage } = useHistoryStore()
+  const { items: historyItems, isLoading: historyLoading, clearHistory, loadFromFirestore, refreshFromStorage } = useHistoryStore()
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [selectedMode, setSelectedMode] = useState<SessionMode>('general')
+  useEffect(() => { document.title = 'Dashboard - FoundryForge' }, [])
 
   useEffect(() => {
     if (isConfigured && user?.uid) {
@@ -424,7 +425,16 @@ export function Dashboard() {
                   />
                 </div>
 
-                {filteredHistory.length > 0 ? (
+                {historyLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((n) => (
+                      <div key={n} className="animate-pulse rounded-xl border border-border/50 bg-surface/30 p-5">
+                        <div className="mb-2 h-4 w-3/5 rounded bg-surface-hover" />
+                        <div className="h-3 w-4/5 rounded bg-surface-hover/60" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredHistory.length > 0 ? (
                   <div className="space-y-1">
                     {filteredHistory.map((item) => (
                       <SessionCard

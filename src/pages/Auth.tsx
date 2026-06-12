@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Sparkles, Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react'
@@ -15,6 +15,7 @@ export function Auth() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  useEffect(() => { document.title = mode === 'login' ? 'Sign In - FoundryForge' : 'Sign Up - FoundryForge' }, [mode])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()

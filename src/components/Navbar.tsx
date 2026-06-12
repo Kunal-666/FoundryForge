@@ -50,7 +50,7 @@ export function Navbar() {
                   {user.displayName || user.email}
                 </span>
                 {!isMock && (
-                  <button onClick={signOut} className="text-text-dim hover:text-text transition-colors">
+                  <button onClick={signOut} aria-label="Sign out" className="text-text-dim hover:text-text transition-colors">
                     <LogOut className="h-3.5 w-3.5" />
                   </button>
                 )}

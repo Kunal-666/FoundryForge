@@ -139,6 +139,8 @@ export function StageCard({ stage, isActive, searchQuery, isExpandedAll = null }
         className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer"
         role="button"
         tabIndex={0}
+        aria-label={expanded ? `Collapse ${stage.name}` : `Expand ${stage.name}`}
+        aria-expanded={expanded}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hasDetails && setExpanded(!expanded); } }}
       >
         <span className="text-lg">{stage.icon}</span>

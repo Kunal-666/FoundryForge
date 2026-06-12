@@ -64,6 +64,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         )}
         <button
           onClick={toggle}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors',
             isCollapsed && 'mx-auto',
@@ -133,7 +134,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               </p>
             </div>
             {!isMock && (
-              <button onClick={signOut} className="text-text-dim hover:text-text transition-colors">
+              <button onClick={signOut} aria-label="Sign out" className="text-text-dim hover:text-text transition-colors">
                 <LogOut className="h-4 w-4" />
               </button>
             )}

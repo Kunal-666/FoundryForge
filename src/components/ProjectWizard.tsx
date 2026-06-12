@@ -179,6 +179,7 @@ export function ProjectWizard({ sessionId, prompt, onComplete, onDismiss }: Proj
           </div>
           <button
             onClick={onDismiss}
+            aria-label="Close wizard"
             className="rounded-lg p-1 text-text-dim hover:text-text hover:bg-surface-hover transition-colors"
           >
             <X className="h-4 w-4" />

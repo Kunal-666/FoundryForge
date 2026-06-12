@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/lib/auth'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 const Landing = lazy(() => import('@/pages/Landing').then(m => ({ default: m.Landing })))
@@ -36,12 +37,13 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <SettingsApplier />
-        <Suspense fallback={
-          <div className="flex min-h-screen items-center justify-center bg-background">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-          </div>
-        }>
-          <Routes>
+        <ErrorBoundary>
+          <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-background">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+            </div>
+          }>
+            <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route
@@ -60,8 +62,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </Suspense>
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   )

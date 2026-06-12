@@ -44,7 +44,7 @@ function loadFromStorage(): Record<string, Session> {
 function saveToStorage(sessions: Record<string, Session>) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions))
-  } catch {}
+  } catch (e) { console.error('[sessionStore] Failed to save to localStorage', e) }
 }
 
 interface SessionState {
@@ -82,7 +82,7 @@ function syncToFirestore(session: Session) {
   if (!isConfigured || !db) return
   if (!isAutoSaveEnabled()) return
   try {
-    setDoc(doc(db, 'sessions', session.id), stripUndefined(session) as Record<string, unknown>, { merge: true }).catch(() => {})
+    setDoc(doc(db, 'sessions', session.id), stripUndefined(session) as Record<string, unknown>, { merge: true }).catch((e) => { console.error('[sessionStore] Firestore sync failed', e) })
   } catch {}
 }
 
