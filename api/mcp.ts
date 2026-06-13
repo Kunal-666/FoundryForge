@@ -268,7 +268,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 properties: {
                   query: {
                     type: 'string',
-                    description: 'The search query (e.g., "HIPAA compliance for database", "microservices communication patterns")'
+                    description: 'The search query (e.g., "React coding standards", "database planning rules", "microservices communication patterns")'
                   }
                 },
                 required: ['query']

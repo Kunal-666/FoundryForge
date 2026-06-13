@@ -74,7 +74,7 @@ You can query your FoundryForge architectural index directly inside VS Code's Co
 *(Or use `http://localhost:3000/api/mcp/sse` when running `vercel dev` locally).*
 
 3. Chat with Copilot:
-> *"Use the foundryforge-mcp tool to query HIPAA compliance"*
+> *"Use the foundryforge-mcp tool to query React coding standards"*
 
 ---
 
