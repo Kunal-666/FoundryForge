@@ -1,40 +1,117 @@
-import { createMcpHandler } from 'mcp-handler'
-import { z } from 'zod'
+import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-// Use the default Node.js runtime so standard Node APIs (net, tls, crypto) are available
-export const config = {
-  runtime: 'nodejs',
-}
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Enforce CORS so MCP clients running in browser/iframe contexts can connect
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, MCP-Protocol-Version')
 
-const handler = createMcpHandler(
-  (server) => {
-    // Tool: query_foundry_iq
-    server.tool(
-      'query_foundry_iq',
-      'Query the Foundry IQ architecture knowledge base for best practices, compliance, and design patterns.',
-      {
-        query: z.string().describe('The search query (e.g., "HIPAA compliance for database", "microservices communication patterns")'),
-      },
-      async ({ query }) => {
-        return {
-          content: [
+  if (req.method === 'OPTIONS') {
+    res.status(200).end()
+    return
+  }
+
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed. Please use POST.' })
+    return
+  }
+
+  const { jsonrpc, method, params, id } = req.body || {}
+
+  // Basic JSON-RPC 2.0 validation
+  if (jsonrpc !== '2.0') {
+    res.status(400).json({
+      jsonrpc: '2.0',
+      error: { code: -32600, message: 'Invalid Request (JSON-RPC 2.0 version is required)' },
+      id: id || null
+    })
+    return
+  }
+
+  switch (method) {
+    case 'initialize': {
+      res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          protocolVersion: '2025-03-26',
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: {
+            name: 'foundryforge-mcp',
+            version: '1.0.0'
+          }
+        }
+      })
+      break
+    }
+
+    case 'notifications/initialized': {
+      res.status(200).end()
+      break
+    }
+
+    case 'tools/list': {
+      res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          tools: [
             {
-              type: 'text',
-              text: `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Found architectural match for '${query}'\n- Recommended pattern: Microservices with API Gateway and event-driven communication.\n- Compliance note: Ensure TLS 1.3 is enforced at all boundaries and database is encrypted at rest (AES-256).`
+              name: 'query_foundry_iq',
+              description: 'Query the Foundry IQ architecture knowledge base for best practices, compliance, and design patterns.',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: {
+                    type: 'string',
+                    description: 'The search query (e.g., "HIPAA compliance for database", "microservices communication patterns")'
+                  }
+                },
+                required: ['query']
+              }
+            },
+            {
+              name: 'generate_compliance_report',
+              description: 'Generate a compliance checklist for a given industry vertical (e.g., healthcare, finance, retail).',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  vertical: {
+                    type: 'string',
+                    enum: ['healthcare', 'finance', 'retail', 'general'],
+                    description: 'The industry vertical'
+                  }
+                },
+                required: ['vertical']
+              }
             }
           ]
         }
-      }
-    )
+      })
+      break
+    }
 
-    // Tool: generate_compliance_report
-    server.tool(
-      'generate_compliance_report',
-      'Generate a compliance checklist for a given industry vertical (e.g., healthcare, finance, retail).',
-      {
-        vertical: z.enum(['healthcare', 'finance', 'retail', 'general']).describe('The industry vertical'),
-      },
-      async ({ vertical }) => {
+    case 'tools/call': {
+      const { name, arguments: args } = params || {}
+      if (name === 'query_foundry_iq') {
+        const { query } = args || {}
+        res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Found architectural match for '${query}'\n- Recommended pattern: Microservices with API Gateway and event-driven communication.\n- Compliance note: Ensure TLS 1.3 is enforced at all boundaries and database is encrypted at rest (AES-256).`
+              }
+            ]
+          }
+        })
+      } else if (name === 'generate_compliance_report') {
+        const { vertical } = args || {}
         let checklist = ''
         if (vertical === 'healthcare') {
           checklist = `- HIPAA compliance: Encrypt all PHI (Protected Health Information) in transit and at rest.\n- Audit logging: Track every read/write to health records.\n- Business Associate Agreement (BAA) with Azure/AWS.`
@@ -43,37 +120,35 @@ const handler = createMcpHandler(
         } else {
           checklist = `- General best practices: Implement rate limiting on APIs.\n- Use TLS 1.3 for all external connections.\n- Enforce password strength policies and MFA.`
         }
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `[Foundry IQ] Compliance Report for ${vertical}:\n${checklist}`
-            }
-          ]
-        }
+        res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: `[Foundry IQ] Compliance Report for ${vertical}:\n${checklist}`
+              }
+            ]
+          }
+        })
+      } else {
+        res.status(200).json({
+          jsonrpc: '2.0',
+          id,
+          error: { code: -32601, message: `Tool not found: ${name}` }
+        })
       }
-    )
-  },
-  {
-    serverInfo: {
-      name: 'foundryforge-mcp',
-      version: '1.0.0',
+      break
     }
-  },
-  {
-    basePath: '/api/mcp',
-  }
-)
 
-export default async function (request: Request) {
-  try {
-    return await handler(request)
-  } catch (error) {
-    const err = error as Error
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    default: {
+      res.status(200).json({
+        jsonrpc: '2.0',
+        id,
+        error: { code: -32601, message: `Method not found: ${method}` }
+      })
+      break
+    }
   }
 }
