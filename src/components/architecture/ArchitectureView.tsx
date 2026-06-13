@@ -52,10 +52,9 @@ export function ArchitectureView({ session, sessionId, onFollowUp, onRegenerate 
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedAll, setExpandedAll] = useState<boolean | null>(null)
 
-  const rawAnswers = useMemo(() => {
-    if (!sessionId) return undefined
-    return useWizardStore.getState().bySession[sessionId]
-  }, [sessionId])
+  const rawAnswers = useWizardStore(
+    (state) => sessionId ? state.bySession[sessionId] : undefined
+  )
 
   const wizardConfig = useMemo(() => {
     if (!rawAnswers) return undefined
