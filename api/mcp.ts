@@ -9,17 +9,18 @@ const STOP_WORDS = new Set([
   'must', 'what', 'how', 'where', 'when', 'who', 'why', 'which', 'here', 'there'
 ])
 
-function searchKnowledgeBase(query: string): string {
+// ─── Local Search Fallback ───────────────────────────────────────────────────
+
+function searchLocalKnowledgeBase(query: string): string {
   try {
     const kbPath = path.join(process.cwd(), 'kb')
     if (!fs.existsSync(kbPath)) {
-      return `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Match found for query '${query}'\n- Recommended pattern: Microservices with API Gateway and event-driven communication.\n- Compliance note: Ensure TLS 1.3 is enforced at all boundaries and database is encrypted at rest (AES-256).`
+      return `[Foundry IQ] Sourced from local fallback search:\n- Match found for query '${query}'\n- Recommended pattern: Microservices with API Gateway and event-driven communication.\n- Compliance note: Ensure TLS 1.3 is enforced at all boundaries and database is encrypted at rest (AES-256).`
     }
 
     const files = fs.readdirSync(kbPath)
     const normalizedQuery = query.toLowerCase().replace(/[?,.!]/g, '')
     
-    // Extract query keywords (ignore stop words and short words)
     const rawWords = normalizedQuery.split(/\s+/).filter(w => w.length > 2)
     const keywords = rawWords.filter(w => !STOP_WORDS.has(w))
 
@@ -27,7 +28,6 @@ function searchKnowledgeBase(query: string): string {
       return `[Foundry IQ] Your query is too general. Available architecture standards: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.`
     }
 
-    // First pass: check if any of our key query terms are completely absent from the entire KB
     const allKbText = files
       .filter(f => f.endsWith('.md'))
       .map(file => fs.readFileSync(path.join(kbPath, file), 'utf-8').toLowerCase())
@@ -35,7 +35,6 @@ function searchKnowledgeBase(query: string): string {
 
     const missingKeywords = keywords.filter(word => !allKbText.includes(word))
 
-    // Score matches per file
     const matches: Array<{ file: string; score: number; content: string; matchedKeywords: string[] }> = []
     
     for (const file of files) {
@@ -51,14 +50,14 @@ function searchKnowledgeBase(query: string): string {
       for (const word of keywords) {
         let keywordMatched = false
         if (nameWithoutExt.includes(word)) {
-          score += 30 // Heavy weight for title matches
+          score += 30
           keywordMatched = true
         }
         
         const regex = new RegExp('\\b' + word + '\\b', 'gi')
         const count = (contentLower.match(regex) || []).length
         if (count > 0) {
-          score += count * 2 // Weight per occurrence
+          score += count * 2
           keywordMatched = true
         }
 
@@ -72,28 +71,22 @@ function searchKnowledgeBase(query: string): string {
       }
     }
     
-    // Sort matches by score descending
     matches.sort((a, b) => b.score - a.score)
 
-    // Handle out-of-scope queries
-    // If we have missing keywords (like "india") and the best match only matches generic words like "state" or "database"
     if (missingKeywords.length > 0 && matches.length > 0) {
       const bestMatch = matches[0]
-      // If none of the matched keywords are unique to the file or the match ratio of keywords is low
       const matchRatio = bestMatch.matchedKeywords.length / keywords.length
       
       if (matchRatio < 0.5) {
-        return `[Foundry IQ] The query '${query}' appears to be out-of-scope for the Software Architecture Knowledge Base.\n\n- Missing context: No information was found regarding: ${missingKeywords.map(w => `'${w}'`).join(', ')}.\n- Best architectural match: Sourced '${bestMatch.file}' (Relevance: ${bestMatch.score}) because it matched the terms: ${bestMatch.matchedKeywords.map(w => `'${w}'`).join(', ')}. Note that this document discusses software architecture and state machines, not geography or general trivia.`
+        return `[Foundry IQ] The query '${query}' appears to be out-of-scope for the Software Architecture Knowledge Base.\n\n- Missing context: No information was found regarding: ${missingKeywords.map(w => `'${w}'`).join(', ')}.\n- Best local match: Sourced '${bestMatch.file}' (Relevance: ${bestMatch.score}) because it matched: ${bestMatch.matchedKeywords.map(w => `'${w}'`).join(', ')}.`
       }
     }
     
     if (matches.length === 0) {
-      return `[Foundry IQ] No matching architectural standards found for '${query}'. Available files: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.`
+      return `[Foundry IQ] No matching local architectural standards found for '${query}'. Available files: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.`
     }
     
     const bestMatch = matches[0]
-    
-    // Extract a snippet containing the first matched keyword
     let snippet = ''
     const bestWord = bestMatch.matchedKeywords[0] || ''
     const index = bestWord ? bestMatch.content.toLowerCase().indexOf(bestWord) : -1
@@ -106,11 +99,107 @@ function searchKnowledgeBase(query: string): string {
       snippet = bestMatch.content.slice(0, 1000).trim() + '\n...'
     }
     
-    return `[Foundry IQ] Sourced from search index 'foundryforgesrch' / standard document '${bestMatch.file}' (Relevance: ${bestMatch.score}):\n\n${snippet}`
+    return `[Foundry IQ] Sourced from local standards file '${bestMatch.file}' (Relevance: ${bestMatch.score}):\n\n${snippet}`
   } catch (error) {
-    return `Error searching knowledge base: ${(error as Error).message}`
+    return `Error searching local knowledge base: ${(error as Error).message}`
   }
 }
+
+// ─── Azure AI Foundry Integration ────────────────────────────────────────────
+
+const TOKEN_ENDPOINT = `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/token`
+const FOUNDRY_ENDPOINT = process.env.FOUNDRY_ENDPOINT || ''
+
+let cachedToken: { token: string; expiresAt: number } | null = null
+
+async function getToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.token
+  }
+
+  const scope = 'https://ai.azure.com/.default'
+  const body = new URLSearchParams({
+    client_id: process.env.AZURE_CLIENT_ID!,
+    client_secret: process.env.AZURE_CLIENT_SECRET!,
+    scope,
+    grant_type: 'client_credentials',
+  })
+
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Token request failed: ${res.status} ${text}`)
+  }
+
+  const data = (await res.json()) as any
+  const expiresIn = (data.expires_in as number) || 3600
+  cachedToken = {
+    token: data.access_token as string,
+    expiresAt: Date.now() + (expiresIn - 60) * 1000,
+  }
+  return data.access_token as string
+}
+
+async function queryFoundryAgent(query: string): Promise<string> {
+  const isConfigured = !!process.env.AZURE_TENANT_ID &&
+                       !!process.env.AZURE_CLIENT_ID &&
+                       !!process.env.AZURE_CLIENT_SECRET &&
+                       !!FOUNDRY_ENDPOINT
+
+  if (!isConfigured) {
+    console.log('[api/mcp] Azure credentials missing. Falling back to local search.')
+    return searchLocalKnowledgeBase(query)
+  }
+
+  try {
+    const token = await getToken()
+    
+    const url = new URL(FOUNDRY_ENDPOINT)
+    if (!url.searchParams.has('api-version')) {
+      url.searchParams.set('api-version', 'v1')
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        input: `You are an AI Software Architect querying the Foundry IQ database. Please answer this query using the grounded knowledge in your search index (foundryforgesrch):\n\nQuery: ${query}`
+      }),
+    })
+
+    if (!response.ok) {
+      const text = await response.text()
+      console.warn(`[api/mcp] Foundry query failed (HTTP ${response.status}): ${text}. Falling back to local search.`)
+      return searchLocalKnowledgeBase(query)
+    }
+
+    const data = (await response.json()) as any
+    const text = data.output
+      ?.find((o: any) => o.type === 'message')
+      ?.content?.find((c: any) => c.type === 'output_text')
+      ?.text
+
+    if (!text) {
+      console.warn('[api/mcp] Empty output from Foundry. Falling back to local search.')
+      return searchLocalKnowledgeBase(query)
+    }
+
+    return `[Foundry IQ] Sourced from live Azure AI Foundry agent:\n\n${text}`
+  } catch (error) {
+    console.error('[api/mcp] Error querying Foundry agent:', error)
+    return searchLocalKnowledgeBase(query)
+  }
+}
+
+// ─── MCP Endpoint Handler ────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enforce CORS so MCP clients running in browser/iframe contexts can connect
@@ -210,7 +299,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { name, arguments: args } = params || {}
       if (name === 'query_foundry_iq') {
         const { query } = args || {}
-        const resultText = searchKnowledgeBase(query || '')
+        const resultText = await queryFoundryAgent(query || '')
         res.status(200).json({
           jsonrpc: '2.0',
           id,

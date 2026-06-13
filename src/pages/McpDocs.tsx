@@ -67,9 +67,9 @@ export function McpDocs() {
                     <code className="text-text font-semibold">query_foundry_iq</code>
                   </div>
                   <p className="text-sm mb-4">Queries the Foundry IQ knowledge base files (like stack detection, requirement analysis, and standard blueprints) to find relevant templates or compliance notes.</p>
-                  <div className="text-xs bg-black/30 rounded-lg p-3">
-                    <span className="text-text-dim font-mono">Input: </span>
-                    <code className="text-primary font-mono">{"{ query: string }"}</code>
+                  <div className="text-xs bg-zinc-900 text-zinc-100 rounded-lg p-3">
+                    <span className="text-zinc-400 font-mono">Input: </span>
+                    <code className="text-emerald-400 font-mono">{"{ query: string }"}</code>
                   </div>
                 </Card>
 
@@ -79,9 +79,9 @@ export function McpDocs() {
                     <code className="text-text font-semibold">generate_compliance_report</code>
                   </div>
                   <p className="text-sm mb-4">Generates an industry-compliant checklist for target industries such as Healthcare (HIPAA), Finance (PCI-DSS/SOC2), and Retail.</p>
-                  <div className="text-xs bg-black/30 rounded-lg p-3">
-                    <span className="text-text-dim font-mono">Input: </span>
-                    <code className="text-primary font-mono">{"{ vertical: 'healthcare' | 'finance' | 'retail' | 'general' }"}</code>
+                  <div className="text-xs bg-zinc-900 text-zinc-100 rounded-lg p-3">
+                    <span className="text-zinc-400 font-mono">Input: </span>
+                    <code className="text-emerald-400 font-mono">{"{ vertical: 'healthcare' | 'finance' | 'retail' | 'general' }"}</code>
                   </div>
                 </Card>
               </div>
@@ -100,7 +100,7 @@ export function McpDocs() {
                     {copiedSection === 'stream' ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="p-4 font-mono text-xs text-primary bg-black/30 break-all select-all">{streamableUrl}</div>
+                <div className="p-4 font-mono text-xs text-emerald-400 bg-zinc-950 border border-zinc-800 rounded-lg m-2 break-all select-all">{streamableUrl}</div>
                 <div className="px-4 pb-4 text-xs text-text-dim">
                   *Best for modern cloud clients like Codex Desktop using stateless HTTP connection.
                 </div>
@@ -115,7 +115,7 @@ export function McpDocs() {
                     {copiedSection === 'sse' ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="p-4 font-mono text-xs text-primary bg-black/30 break-all select-all">{sseUrl}</div>
+                <div className="p-4 font-mono text-xs text-emerald-400 bg-zinc-950 border border-zinc-800 rounded-lg m-2 break-all select-all">{sseUrl}</div>
                 <div className="px-4 pb-4 text-xs text-text-dim">
                   *Used by client plugins (like VS Code Copilot or Claude Desktop) expecting a persistent server-sent events connection.
                 </div>
@@ -147,7 +147,7 @@ export function McpDocs() {
                     <span>{copiedSection === 'vscode' ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <pre className="text-xs p-4 bg-black/40 rounded-xl overflow-x-auto text-primary border border-border/55 select-all">
+                <pre className="text-xs p-4 bg-zinc-950 rounded-xl overflow-x-auto text-zinc-100 border border-zinc-800 select-all">
                   {vsCodeConfig}
                 </pre>
               </div>
@@ -163,7 +163,7 @@ export function McpDocs() {
                     <span>{copiedSection === 'claude' ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <pre className="text-xs p-4 bg-black/40 rounded-xl overflow-x-auto text-primary border border-border/55 select-all">
+                <pre className="text-xs p-4 bg-zinc-950 rounded-xl overflow-x-auto text-zinc-100 border border-zinc-800 select-all">
                   {claudeConfig}
                 </pre>
               </div>
