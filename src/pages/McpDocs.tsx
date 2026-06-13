@@ -73,17 +73,7 @@ export function McpDocs() {
                   </div>
                 </Card>
 
-                <Card className="p-6 border-border/60 bg-surface/50 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Terminal className="h-4 w-4 text-primary" />
-                    <code className="text-text font-semibold">generate_compliance_report</code>
-                  </div>
-                  <p className="text-sm mb-4">Generates an industry-compliant checklist for target industries such as Healthcare (HIPAA), Finance (PCI-DSS/SOC2), and Retail.</p>
-                  <div className="text-xs bg-zinc-900 text-zinc-100 rounded-lg p-3">
-                    <span className="text-zinc-400 font-mono">Input: </span>
-                    <code className="text-emerald-400 font-mono">{"{ vertical: 'healthcare' | 'finance' | 'retail' | 'general' }"}</code>
-                  </div>
-                </Card>
+
               </div>
             </section>
 

@@ -273,21 +273,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 },
                 required: ['query']
               }
-            },
-            {
-              name: 'generate_compliance_report',
-              description: 'Generate a compliance checklist for a given industry vertical (e.g., healthcare, finance, retail).',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  vertical: {
-                    type: 'string',
-                    enum: ['healthcare', 'finance', 'retail', 'general'],
-                    description: 'The industry vertical'
-                  }
-                },
-                required: ['vertical']
-              }
             }
           ]
         }
@@ -308,28 +293,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               {
                 type: 'text',
                 text: resultText
-              }
-            ]
-          }
-        })
-      } else if (name === 'generate_compliance_report') {
-        const { vertical } = args || {}
-        let checklist = ''
-        if (vertical === 'healthcare') {
-          checklist = `- HIPAA compliance: Encrypt all PHI (Protected Health Information) in transit and at rest.\n- Audit logging: Track every read/write to health records.\n- Business Associate Agreement (BAA) with Azure/AWS.`
-        } else if (vertical === 'finance') {
-          checklist = `- PCI-DSS compliance: Restrict access to cardholder data.\n- SOC 2 Type II: Continuous audit monitoring.\n- Implement strict network isolation (VPCs) and role-based access control (RBAC).`
-        } else {
-          checklist = `- General best practices: Implement rate limiting on APIs.\n- Use TLS 1.3 for all external connections.\n- Enforce password strength policies and MFA.`
-        }
-        res.status(200).json({
-          jsonrpc: '2.0',
-          id,
-          result: {
-            content: [
-              {
-                type: 'text',
-                text: `[Foundry IQ] Compliance Report for ${vertical}:\n${checklist}`
               }
             ]
           }
