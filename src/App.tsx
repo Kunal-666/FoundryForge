@@ -9,6 +9,7 @@ const AuthPage = lazy(() => import('@/pages/Auth').then(m => ({ default: m.Auth 
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const Conversation = lazy(() => import('@/pages/Conversation').then(m => ({ default: m.Conversation })))
 const Documentation = lazy(() => import('@/pages/Documentation').then(m => ({ default: m.Documentation })))
+const McpDocs = lazy(() => import('@/pages/McpDocs').then(m => ({ default: m.McpDocs })))
 const Privacy = lazy(() => import('@/pages/Privacy').then(m => ({ default: m.Privacy })))
 const Terms = lazy(() => import('@/pages/Terms').then(m => ({ default: m.Terms })))
 
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/docs" element={<Documentation />} />
+            <Route path="/mcp" element={<McpDocs />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/dashboard" element={<Dashboard />} />

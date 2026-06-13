@@ -236,6 +236,9 @@ export function Landing() {
               <Link to="/docs" className="text-sm text-text-muted hover:text-text transition-colors">
                 Documentation
               </Link>
+              <Link to="/mcp" className="text-sm text-text-muted hover:text-text transition-colors">
+                MCP Server
+              </Link>
               <Link to="/privacy" className="text-sm text-text-muted hover:text-text transition-colors">
                 Privacy
               </Link>
