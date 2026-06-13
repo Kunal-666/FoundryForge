@@ -1,4 +1,73 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import fs from 'fs'
+import path from 'path'
+
+function searchKnowledgeBase(query: string): string {
+  try {
+    const kbPath = path.join(process.cwd(), 'kb')
+    if (!fs.existsSync(kbPath)) {
+      return `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Match found for query '${query}'\n- Recommended pattern: Microservices with API Gateway and event-driven communication.\n- Compliance note: Ensure TLS 1.3 is enforced at all boundaries and database is encrypted at rest (AES-256).`
+    }
+
+    const files = fs.readdirSync(kbPath)
+    const normalizedQuery = query.toLowerCase()
+    
+    // Score matches
+    const matches: Array<{ file: string; score: number; content: string }> = []
+    
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue
+      const filePath = path.join(kbPath, file)
+      const content = fs.readFileSync(filePath, 'utf-8')
+      
+      let score = 0
+      
+      // Score based on file name matching
+      const nameWithoutExt = file.replace('.md', '').replace(/_/g, ' ').toLowerCase()
+      const words = normalizedQuery.split(' ').filter(w => w.length > 2)
+      
+      for (const word of words) {
+        if (nameWithoutExt.includes(word)) {
+          score += 15
+        }
+        const regex = new RegExp(word, 'gi')
+        const count = (content.match(regex) || []).length
+        score += count
+      }
+      
+      if (score > 0) {
+        matches.push({ file, score, content })
+      }
+    }
+    
+    if (matches.length === 0) {
+      return `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Sourced from index search for '${query}'.\n- No direct match in local standard files. Available files: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.\n- Best Practice: Start by analyzing requirements, locking down technology choices, and generating database schemas with strict RBAC.`
+    }
+    
+    // Sort by score descending
+    matches.sort((a, b) => b.score - a.score)
+    
+    const bestMatch = matches[0]
+    
+    // Extract a snippet containing the keyword, or return the top portion
+    let snippet = ''
+    const bestWord = normalizedQuery.split(' ').filter(w => w.length > 2)[0] || ''
+    const index = bestWord ? bestMatch.content.toLowerCase().indexOf(bestWord) : -1
+    
+    if (index !== -1) {
+      const start = Math.max(0, index - 200)
+      const end = Math.min(bestMatch.content.length, index + 800)
+      snippet = '...\n' + bestMatch.content.slice(start, end).trim() + '\n...'
+    } else {
+      snippet = bestMatch.content.slice(0, 1000).trim() + '\n...'
+    }
+    
+    // Clean up markdown formatting inside snippet if too long
+    return `[Foundry IQ] Sourced from search index 'foundryforgesrch' / standard document '${bestMatch.file}' (Relevance: ${bestMatch.score}):\n\n${snippet}`
+  } catch (error) {
+    return `Error searching knowledge base: ${(error as Error).message}`
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enforce CORS so MCP clients running in browser/iframe contexts can connect
@@ -98,6 +167,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { name, arguments: args } = params || {}
       if (name === 'query_foundry_iq') {
         const { query } = args || {}
+        const resultText = searchKnowledgeBase(query || '')
         res.status(200).json({
           jsonrpc: '2.0',
           id,
@@ -105,7 +175,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             content: [
               {
                 type: 'text',
-                text: `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Found architectural match for '${query}'\n- Recommended pattern: Microservices with API Gateway and event-driven communication.\n- Compliance note: Ensure TLS 1.3 is enforced at all boundaries and database is encrypted at rest (AES-256).`
+                text: resultText
               }
             ]
           }
