@@ -1,3 +1,5 @@
+import type { WizardAnswers } from '@/data/wizardQuestions'
+
 export type SessionMode = 'general' | 'architecture' | 'codegen'
 
 export interface TimelineStage {
@@ -32,6 +34,7 @@ export interface Session {
   timeline: TimelineStage[]
   messages: Message[]
   userId?: string
+  wizardAnswers?: WizardAnswers | null
 }
 
 export interface HistoryItem {

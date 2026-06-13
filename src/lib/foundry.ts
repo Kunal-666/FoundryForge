@@ -17,7 +17,7 @@ const MAX_LINES = 10
 const DEDUP_KEY_LENGTH = 40
 const CLIENT_TIMEOUT_MS = 300_000 // 5 min
 
-const RETRY_CODES = new Set([408, 502, 503, 504])
+const RETRY_CODES = new Set([408, 429, 500, 502, 503, 504])
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -156,17 +156,37 @@ async function callAgent(input: string, mode: ModeKey, signal?: AbortSignal): Pr
 
   getStore().setConnecting()
 
-  let res: Response
-  try {
-    res = await fetchAgent(input, signal)
-    if (RETRY_CODES.has(res.status)) {
+  let res: Response | null = null
+  let attempts = 0
+  const maxAttempts = 3
+
+  while (attempts < maxAttempts) {
+    attempts++
+    try {
       res = await fetchAgent(input, signal)
+      if (res.ok || !RETRY_CODES.has(res.status)) {
+        break
+      }
+    } catch (err) {
+      if (attempts >= maxAttempts) {
+        console.error('[Foundry] fetch failed:', err)
+        const message = err instanceof DOMException && err.name === 'AbortError'
+          ? 'Request was cancelled'
+          : 'Network error — is the dev server running with `npm run dev`?'
+        getStore().setError(message)
+        throw new FoundryError(message)
+      }
     }
-  } catch (err) {
-    console.error('[Foundry] fetch failed:', err)
-    const message = err instanceof DOMException && err.name === 'AbortError'
-      ? 'Request was cancelled'
-      : 'Network error — is the dev server running with `npm run dev`?'
+
+    if (attempts < maxAttempts) {
+      const delay = Math.pow(2, attempts) * 1000
+      console.warn(`[Foundry] Retryable error (status: ${res ? res.status : 'fetch failed'}). Retrying attempt ${attempts + 1}/${maxAttempts} in ${delay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+
+  if (!res) {
+    const message = 'Network error — no response received'
     getStore().setError(message)
     throw new FoundryError(message)
   }
@@ -232,6 +252,7 @@ function buildStageInstruction(stageId: StageKey, mode: ModeKey): string {
     '- Keep each bullet under 20 words.',
     '- Use previous stages only for context. Do not summarize or repeat them.',
     '- Focus on the current stage; avoid cross-stage overviews.',
+    '- Do NOT use or call any external tools, search connections, database queries, or function calling for this response. Provide the analysis based entirely on your internal knowledge.',
     stageHints[stageId] ? `- ${stageHints[stageId]}` : '',
   ].join('\n')
 }

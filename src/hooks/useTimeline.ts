@@ -17,12 +17,31 @@ export function useTimeline(sessionId: string | undefined) {
     setIsProcessing(true)
     updateSessionStatus(sessionId, 'thinking')
 
-    const wizardCtx = useWizardStore.getState().buildContext(sessionId)
-    let previousContext = wizardCtx
+    const raw = session.wizardAnswers || useWizardStore.getState().bySession[sessionId]
+    let previousContext = ''
+    if (raw) {
+      const lines: string[] = []
+      if (raw.scale) lines.push(`Scale: ${raw.scale}`)
+      if (raw.scope) lines.push(`Scope: ${raw.scope}`)
+      if (raw.audience) lines.push(`Target Audience: ${raw.audience}`)
+      if (raw.expectedUsers) lines.push(`Expected Users: ${raw.expectedUsers}`)
+      if (raw.timelinePriority) lines.push(`Timeline Priority: ${raw.timelinePriority}`)
+      if (raw.budget) lines.push(`Budget: ${raw.budget}`)
+      if (raw.goal) lines.push(`Goal: ${raw.goal}`)
+      if (raw.payment && raw.payment !== 'none') lines.push(`Payment: ${raw.payment}`)
+      if (raw.storage && raw.storage !== 'none') lines.push(`Storage: ${raw.storage}`)
+      if (raw.deployment) lines.push(`Deployment: ${raw.deployment}`)
+      if (raw.frontend.length) lines.push(`Frontend: ${raw.frontend.join(', ')}`)
+      if (raw.backend.length) lines.push(`Backend: ${raw.backend.join(', ')}`)
+      if (raw.database.length) lines.push(`Database: ${raw.database.join(', ')}`)
+      if (raw.auth.length && !raw.auth.includes('none')) {
+        lines.push(`Authentication: ${raw.auth.join(', ')}`)
+      }
+      if (lines.length) {
+        previousContext = `\n## User Configuration\n${lines.map(l => `- ${l}`).join('\n')}\n`
+      }
+    }
 
-    // Build structured config from wizard answers
-    const wizardState = useWizardStore.getState()
-    const raw = wizardState.bySession[sessionId]
     const stageConfig: StageConfig | undefined = raw ? {
       scale: raw.scale,
       scope: raw.scope,
@@ -44,6 +63,11 @@ export function useTimeline(sessionId: string | undefined) {
       if (abortRef.current) break
 
       updateTimelineStage(sessionId, stage.id, { status: 'loading' })
+
+      // Introduce a throttle delay to prevent slamming the Azure model gateway
+      await new Promise(resolve => setTimeout(resolve, 800))
+
+      if (abortRef.current) break
 
       try {
         const details = await analyzeStage(

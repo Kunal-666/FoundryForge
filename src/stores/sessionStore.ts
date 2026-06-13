@@ -54,6 +54,7 @@ interface SessionState {
   createSession: (prompt: string, mode?: SessionMode, userId?: string) => string
   updateSessionStatus: (id: string, status: Session['status']) => void
   updateTimelineStage: (id: string, stageId: string, updates: Partial<TimelineStage>) => void
+  updateSessionWizardAnswers: (id: string, answers: import('@/data/wizardQuestions').WizardAnswers) => void
   addMessage: (id: string, message: Message) => void
   removeMessagesAfter: (id: string, afterIdx: number) => void
   getCurrentSession: () => Session | null
@@ -146,6 +147,20 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         timeline: session.timeline.map((s) =>
           s.id === stageId ? { ...s, ...updates } : s,
         ),
+        updatedAt: new Date(),
+      }
+      const sessions = { ...state.sessions, [id]: updated }
+      persist(sessions, updated)
+      return { sessions }
+    }),
+
+  updateSessionWizardAnswers: (id, wizardAnswers) =>
+    set((state) => {
+      const session = state.sessions[id]
+      if (!session) return state
+      const updated = {
+        ...session,
+        wizardAnswers,
         updatedAt: new Date(),
       }
       const sessions = { ...state.sessions, [id]: updated }

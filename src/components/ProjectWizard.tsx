@@ -10,6 +10,7 @@ import { ConfigSummaryCard } from '@/components/ConfigSummaryCard'
 import { WIZARD_QUESTIONS, type WizardAnswers, defaultAnswers } from '@/data/wizardQuestions'
 import { useWizardStore } from '@/stores/wizardStore'
 import { detectWizardPrefs } from '@/lib/detectWizardPrefs'
+import { useSessionStore } from '@/stores/sessionStore'
 
 interface ProjectWizardProps {
   sessionId: string
@@ -146,6 +147,7 @@ export function ProjectWizard({ sessionId, prompt, onComplete, onDismiss }: Proj
   const finish = () => {
     setAnswers(sessionId, answers)
     markCompleted(sessionId)
+    useSessionStore.getState().updateSessionWizardAnswers(sessionId, answers)
     onComplete()
   }
 
