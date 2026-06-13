@@ -2,6 +2,13 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import fs from 'fs'
 import path from 'path'
 
+const STOP_WORDS = new Set([
+  'the', 'and', 'for', 'with', 'you', 'this', 'that', 'from', 'about', 'your',
+  'total', 'name', 'names', 'in', 'of', 'to', 'is', 'it', 'has', 'have', 'are',
+  'was', 'were', 'been', 'will', 'would', 'should', 'can', 'could', 'may', 'might',
+  'must', 'what', 'how', 'where', 'when', 'who', 'why', 'which', 'here', 'there'
+])
+
 function searchKnowledgeBase(query: string): string {
   try {
     const kbPath = path.join(process.cwd(), 'kb')
@@ -10,48 +17,85 @@ function searchKnowledgeBase(query: string): string {
     }
 
     const files = fs.readdirSync(kbPath)
-    const normalizedQuery = query.toLowerCase()
+    const normalizedQuery = query.toLowerCase().replace(/[?,.!]/g, '')
     
-    // Score matches
-    const matches: Array<{ file: string; score: number; content: string }> = []
+    // Extract query keywords (ignore stop words and short words)
+    const rawWords = normalizedQuery.split(/\s+/).filter(w => w.length > 2)
+    const keywords = rawWords.filter(w => !STOP_WORDS.has(w))
+
+    if (keywords.length === 0) {
+      return `[Foundry IQ] Your query is too general. Available architecture standards: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.`
+    }
+
+    // First pass: check if any of our key query terms are completely absent from the entire KB
+    const allKbText = files
+      .filter(f => f.endsWith('.md'))
+      .map(file => fs.readFileSync(path.join(kbPath, file), 'utf-8').toLowerCase())
+      .join(' ')
+
+    const missingKeywords = keywords.filter(word => !allKbText.includes(word))
+
+    // Score matches per file
+    const matches: Array<{ file: string; score: number; content: string; matchedKeywords: string[] }> = []
     
     for (const file of files) {
       if (!file.endsWith('.md')) continue
       const filePath = path.join(kbPath, file)
       const content = fs.readFileSync(filePath, 'utf-8')
+      const contentLower = content.toLowerCase()
       
       let score = 0
-      
-      // Score based on file name matching
+      const matchedKeywords: string[] = []
       const nameWithoutExt = file.replace('.md', '').replace(/_/g, ' ').toLowerCase()
-      const words = normalizedQuery.split(' ').filter(w => w.length > 2)
       
-      for (const word of words) {
+      for (const word of keywords) {
+        let keywordMatched = false
         if (nameWithoutExt.includes(word)) {
-          score += 15
+          score += 30 // Heavy weight for title matches
+          keywordMatched = true
         }
-        const regex = new RegExp(word, 'gi')
-        const count = (content.match(regex) || []).length
-        score += count
+        
+        const regex = new RegExp('\\b' + word + '\\b', 'gi')
+        const count = (contentLower.match(regex) || []).length
+        if (count > 0) {
+          score += count * 2 // Weight per occurrence
+          keywordMatched = true
+        }
+
+        if (keywordMatched) {
+          matchedKeywords.push(word)
+        }
       }
       
       if (score > 0) {
-        matches.push({ file, score, content })
+        matches.push({ file, score, content, matchedKeywords })
+      }
+    }
+    
+    // Sort matches by score descending
+    matches.sort((a, b) => b.score - a.score)
+
+    // Handle out-of-scope queries
+    // If we have missing keywords (like "india") and the best match only matches generic words like "state" or "database"
+    if (missingKeywords.length > 0 && matches.length > 0) {
+      const bestMatch = matches[0]
+      // If none of the matched keywords are unique to the file or the match ratio of keywords is low
+      const matchRatio = bestMatch.matchedKeywords.length / keywords.length
+      
+      if (matchRatio < 0.5) {
+        return `[Foundry IQ] The query '${query}' appears to be out-of-scope for the Software Architecture Knowledge Base.\n\n- Missing context: No information was found regarding: ${missingKeywords.map(w => `'${w}'`).join(', ')}.\n- Best architectural match: Sourced '${bestMatch.file}' (Relevance: ${bestMatch.score}) because it matched the terms: ${bestMatch.matchedKeywords.map(w => `'${w}'`).join(', ')}. Note that this document discusses software architecture and state machines, not geography or general trivia.`
       }
     }
     
     if (matches.length === 0) {
-      return `[Foundry IQ] Sourced from search index 'foundryforgesrch':\n- Sourced from index search for '${query}'.\n- No direct match in local standard files. Available files: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.\n- Best Practice: Start by analyzing requirements, locking down technology choices, and generating database schemas with strict RBAC.`
+      return `[Foundry IQ] No matching architectural standards found for '${query}'. Available files: ${files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', '')).slice(0, 5).join(', ')}.`
     }
-    
-    // Sort by score descending
-    matches.sort((a, b) => b.score - a.score)
     
     const bestMatch = matches[0]
     
-    // Extract a snippet containing the keyword, or return the top portion
+    // Extract a snippet containing the first matched keyword
     let snippet = ''
-    const bestWord = normalizedQuery.split(' ').filter(w => w.length > 2)[0] || ''
+    const bestWord = bestMatch.matchedKeywords[0] || ''
     const index = bestWord ? bestMatch.content.toLowerCase().indexOf(bestWord) : -1
     
     if (index !== -1) {
@@ -62,7 +106,6 @@ function searchKnowledgeBase(query: string): string {
       snippet = bestMatch.content.slice(0, 1000).trim() + '\n...'
     }
     
-    // Clean up markdown formatting inside snippet if too long
     return `[Foundry IQ] Sourced from search index 'foundryforgesrch' / standard document '${bestMatch.file}' (Relevance: ${bestMatch.score}):\n\n${snippet}`
   } catch (error) {
     return `Error searching knowledge base: ${(error as Error).message}`
