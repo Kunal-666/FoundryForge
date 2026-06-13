@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
@@ -43,42 +43,53 @@ function ensureToken() {
   return bearerToken
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const endpointUrl = env.VITE_FOUNDRY_ENDPOINT || FOUNDRY_TARGET
+  const url = new URL(endpointUrl)
+
+  return {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
     },
-  },
-  server: {
-    proxy: {
-      '/api/ai': {
-        target: FOUNDRY_TARGET,
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\/ai/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (_proxyReq, req) => {
-            const token = ensureToken()
-            if (token) {
-              _proxyReq.setHeader('Authorization', `Bearer ${token}`)
-            }
-          })
-          proxy.on('proxyRes', (proxyRes, req) => {
-            if (proxyRes.statusCode === 401) {
-              let body = ''
-              proxyRes.on('data', (chunk) => { body += chunk })
-              proxyRes.on('end', () => {
-                try {
-                  const parsed = JSON.parse(body)
-                  console.error(`\n  ✖  Foundry API 401 (${req.url?.split('?')[0]}): ${parsed.error?.message || body}\n`)
-                } catch {
-                  console.error(`\n  ✖  Foundry API 401 (${req.url?.split('?')[0]}): ${body}\n`)
-                }
-              })
-            }
-          })
+    server: {
+      proxy: {
+        '/api/proxy': {
+          target: url.origin,
+          changeOrigin: true,
+          rewrite: () => {
+            const sep = url.search ? '&' : '?'
+            return url.pathname + (url.search || '') + `${sep}api-version=v1`
+          },
+          configure: (proxy) => {
+            proxy.on('proxyReq', (_proxyReq, _req) => {
+              const token = ensureToken()
+              if (token) {
+                _proxyReq.setHeader('Authorization', `Bearer ${token}`)
+              } else {
+                console.warn('[proxy] No Bearer token available — run `az login` and restart the dev server.')
+              }
+            })
+            proxy.on('proxyRes', (proxyRes, req) => {
+              if (proxyRes.statusCode === 401) {
+                let body = ''
+                proxyRes.on('data', (chunk) => { body += chunk })
+                proxyRes.on('end', () => {
+                  try {
+                    const parsed = JSON.parse(body)
+                    console.error(`\n  ✖  Foundry API 401 (${req.url?.split('?')[0]}): ${parsed.error?.message || body}\n`)
+                  } catch {
+                    console.error(`\n  ✖  Foundry API 401 (${req.url?.split('?')[0]}): ${body}\n`)
+                  }
+                })
+              }
+            })
+          },
         },
       },
     },
-  },
+  }
 })

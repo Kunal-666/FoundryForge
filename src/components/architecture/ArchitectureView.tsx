@@ -173,7 +173,7 @@ export function ArchitectureView({ session, sessionId, onFollowUp, onRegenerate 
           <ProductionArchitectureCard data={data} />
           <AIRecommendationCard data={data} />
           <GeneratorCompatibilityCard data={data} />
-          <DatabaseSummaryCard data={data} />
+          {data.database !== 'Not Required' && <DatabaseSummaryCard data={data} />}
           <RoadmapCard roadmap={data.roadmap} />
           <SecurityRecommendationsCard securityRecommendations={data.securityRecommendations} />
           <MetricCards data={data} />

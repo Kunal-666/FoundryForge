@@ -16,6 +16,7 @@ import {
   Type,
   Zap,
   RotateCcw,
+  Menu,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -67,7 +68,7 @@ function SettingsPanel() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="mx-auto max-w-2xl px-6 py-8"
+      className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8"
     >
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -220,6 +221,7 @@ export function Dashboard() {
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [selectedMode, setSelectedMode] = useState<SessionMode>('general')
   useEffect(() => { document.title = 'Dashboard - FoundryForge' }, [])
 
@@ -270,8 +272,19 @@ export function Dashboard() {
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
         />
         <main className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-border px-4 py-2 lg:hidden">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              aria-label="Open sidebar"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+          </div>
           <ConversationView sessionId={activeSessionId} onBack={closeSession} />
         </main>
       </div>
@@ -283,26 +296,37 @@ export function Dashboard() {
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
       <main className="flex flex-1 flex-col overflow-hidden">
         {/* Tab bar */}
-        <div className="flex h-16 items-center border-b border-border px-6 gap-1">
+        <div className="flex h-16 items-center gap-1 border-b border-border overflow-x-auto px-4 lg:px-6 ">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                'flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 activeTab === tab.id
                   ? 'bg-primary/10 text-primary'
                   : 'text-text-muted hover:text-text hover:bg-surface-hover',
               )}
             >
               <tab.icon className="h-4 w-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
+          <div className="ml-auto flex items-center lg:hidden">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              aria-label="Open sidebar"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <ScrollArea className="flex-1">
@@ -313,28 +337,28 @@ export function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mx-auto max-w-3xl px-6 py-12"
+                className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12"
               >
-                <div className="mb-8 text-center">
+                <div className="mb-6 sm:mb-8 text-center">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                      <Sparkles className="h-7 w-7 text-primary" />
+                    <div className="mb-4 inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-primary/10">
+                      <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                     </div>
-                    <h1 className="mb-2 text-2xl font-bold text-text">
+                    <h1 className="mb-2 text-xl sm:text-2xl font-bold text-text">
                       What are you building?
                     </h1>
-                    <p className="text-text-muted">
+                    <p className="text-sm sm:text-base text-text-muted">
                       Describe your software idea and let FoundryForge architect it for you.
                     </p>
                   </motion.div>
                 </div>
 
                 <div className="mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-6">
+                  <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
                     {(Object.entries(MODE_CONFIG) as [SessionMode, typeof MODE_CONFIG['general']][]).map(([mode, config]) => {
                       const isActive = selectedMode === mode
                       const Icon = MODE_ICONS[mode]
@@ -343,15 +367,15 @@ export function Dashboard() {
                           key={mode}
                           onClick={() => setSelectedMode(mode)}
                           className={cn(
-                            'flex items-center gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium transition-all',
+                            'flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all sm:gap-2.5 sm:px-4 sm:py-3',
                             isActive
                               ? 'border-primary/40 bg-primary/10 text-primary shadow-sm'
                               : 'border-border bg-surface text-text-muted hover:text-text hover:border-border-hover',
                           )}
                         >
                           <Icon className={cn('h-4 w-4', isActive ? 'text-primary' : 'text-text-dim')} />
-                          <span>{config.label}</span>
-                          {isActive && <Check className="h-3.5 w-3.5 text-primary" />}
+                          <span className="hidden sm:inline">{config.label}</span>
+                          {isActive && <Check className="h-3.5 w-3.5 text-primary hidden sm:inline" />}
                           <Badge variant={isActive ? 'default' : 'secondary'} className="text-[10px]">
                             {config.badge}
                           </Badge>
@@ -401,7 +425,7 @@ export function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mx-auto max-w-3xl px-6 py-8"
+                className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8"
               >
                 <div className="mb-6 flex items-center justify-between">
                   <div>
@@ -462,7 +486,7 @@ export function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mx-auto max-w-4xl px-6 py-8"
+                className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8"
               >
                 <div className="mb-6">
                   <h2 className="text-xl font-bold text-text">Templates</h2>

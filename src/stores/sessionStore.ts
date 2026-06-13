@@ -81,6 +81,7 @@ function stripUndefined(obj: unknown): unknown {
 function syncToFirestore(session: Session) {
   if (!isConfigured || !db) return
   if (!isAutoSaveEnabled()) return
+  if (!session.userId) return // Don't sync if no user is assigned
   try {
     setDoc(doc(db, 'sessions', session.id), stripUndefined(session) as Record<string, unknown>, { merge: true }).catch((e) => { console.error('[sessionStore] Firestore sync failed', e) })
   } catch {}

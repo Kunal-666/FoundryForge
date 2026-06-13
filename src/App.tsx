@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/lib/auth'
-import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useSettingsStore } from '@/stores/settingsStore'
 
@@ -9,6 +8,9 @@ const Landing = lazy(() => import('@/pages/Landing').then(m => ({ default: m.Lan
 const AuthPage = lazy(() => import('@/pages/Auth').then(m => ({ default: m.Auth })))
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const Conversation = lazy(() => import('@/pages/Conversation').then(m => ({ default: m.Conversation })))
+const Documentation = lazy(() => import('@/pages/Documentation').then(m => ({ default: m.Documentation })))
+const Privacy = lazy(() => import('@/pages/Privacy').then(m => ({ default: m.Privacy })))
+const Terms = lazy(() => import('@/pages/Terms').then(m => ({ default: m.Terms })))
 
 function SettingsApplier() {
   const { theme, fontSize, animationSpeed } = useSettingsStore()
@@ -46,22 +48,11 @@ export default function App() {
             <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/session/:id"
-              element={
-                <ProtectedRoute>
-                  <Conversation />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/docs" element={<Documentation />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/session/:id" element={<Conversation />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

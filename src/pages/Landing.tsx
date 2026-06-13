@@ -1,12 +1,21 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 import { motion } from 'framer-motion'
 import {
   Sparkles,
   ArrowRight,
   Brain,
+  MessageSquare,
   Building2,
+  Database,
+  FolderTree,
   Shield,
+  Map,
   Zap,
   ChevronRight,
 } from 'lucide-react'
@@ -16,10 +25,14 @@ import { Navbar } from '@/components/Navbar'
 import { FEATURES } from '@/data/mock'
 
 const workflowSteps = [
-  { icon: Brain, title: 'Requirement Analysis', description: 'Deep understanding of your software idea', color: 'from-violet-500 to-purple-500' },
-  { icon: Building2, title: 'Architecture Design', description: 'Scalable system architecture planning', color: 'from-blue-500 to-cyan-500' },
-  { icon: Shield, title: 'Security Review', description: 'Built-in security at every layer', color: 'from-emerald-500 to-green-500' },
-  { icon: Zap, title: 'Code Generation', description: 'Production-ready starter applications', color: 'from-amber-500 to-orange-500' },
+  { icon: Brain, title: 'Requirements Analysis', description: 'Extract roles, core features, and non-functional needs', color: 'from-violet-500 to-purple-500' },
+  { icon: MessageSquare, title: 'Clarification & Scope', description: 'Identify missing information, assumptions, and boundaries', color: 'from-fuchsia-500 to-pink-500' },
+  { icon: Building2, title: 'Architecture Design', description: 'Scalable system architecture and stack recommendations', color: 'from-blue-500 to-cyan-500' },
+  { icon: Database, title: 'Database Summary', description: 'Define the database type, main entities, and relationships', color: 'from-sky-500 to-indigo-500' },
+  { icon: FolderTree, title: 'Project Structure', description: 'Feature-based folder layout and module boundaries', color: 'from-teal-500 to-emerald-500' },
+  { icon: Shield, title: 'Security & Compliance', description: 'Built-in security, authentication, and validation', color: 'from-emerald-500 to-green-500' },
+  { icon: Map, title: 'Development Roadmap', description: 'Implementation phases, milestones, and dependencies', color: 'from-orange-500 to-red-500' },
+  { icon: Zap, title: 'Code Generation', description: 'AI Tool recommendations and production-ready starters', color: 'from-amber-500 to-orange-500' },
 ]
 
 export function Landing() {
@@ -113,48 +126,71 @@ export function Landing() {
       {/* Workflow */}
       <section className="relative py-20">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-        <div className="relative mx-auto max-w-6xl px-6">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-16 text-center"
+            className="mb-12 text-center sm:mb-16"
           >
-            <h2 className="mb-4 text-3xl font-bold text-text">
+            <h2 className="mb-4 text-2xl font-bold text-text sm:text-3xl">
               Your AI Architecture Pipeline
             </h2>
-            <p className="mx-auto max-w-2xl text-text-muted">
+            <p className="mx-auto max-w-2xl text-sm text-text-muted sm:text-base">
               From idea to architecture in minutes. Every step is transparent, reviewable, and customizable.
             </p>
           </motion.div>
 
-          <div className="relative">
-            <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-primary/20 to-transparent hidden lg:block" />
-            <div className="grid gap-8 lg:grid-cols-4">
+          <div className="relative px-4 sm:px-12">
+            <Swiper
+              modules={[Navigation, Pagination, A11y, Autoplay]}
+              spaceBetween={24}
+              slidesPerView={1}
+              // navigation
+              loop={true}
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 1500, disableOnInteraction: true }}
+              breakpoints={{
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+                1280: { slidesPerView: 4 },
+              }}
+              className="!pb-14"
+            >
               {workflowSteps.map((step, i) => (
-                <motion.div
-                  key={step.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15 }}
-                  className="relative pl-0 lg:pl-16"
-                >
-                  <div className="absolute left-0 top-1 hidden h-4 w-4 rounded-full border-2 border-primary bg-background lg:block" />
-                  <div className={`rounded-2xl border border-border bg-surface p-6 transition-colors hover:border-primary/20`}>
-                    <div className={`mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${step.color} shadow-lg`}>
-                      <step.icon className="h-5 w-5 text-white" />
+                <SwiperSlide key={step.title} className="h-auto">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    whileHover={{ y: -4 }}
+                    className="group relative h-full"
+                  >
+                    {/* Card */}
+                    <div className="relative h-full">
+                      <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <div className="relative h-full rounded-2xl border border-border bg-surface p-5 transition-all duration-300 sm:p-6 group-hover:border-primary/20 group-hover:shadow-lg group-hover:shadow-primary/5">
+                        <div className="mb-3 flex items-start justify-between sm:mb-4">
+                          <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${step.color} shadow-lg shadow-black/20`}>
+                            <step.icon className="h-5 w-5 text-white" />
+                          </div>
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                            {i + 1}
+                          </span>
+                        </div>
+                        <h3 className="mb-1.5 text-sm font-semibold text-text sm:text-base">
+                          {step.title}
+                        </h3>
+                        <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
+                          {step.description}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="mb-2 text-base font-semibold text-text">
-                      {step.title}
-                    </h3>
-                    <p className="text-sm text-text-muted">
-                      {step.description}
-                    </p>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         </div>
       </section>
@@ -197,23 +233,20 @@ export function Landing() {
               </span>
             </div>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-sm text-text-muted hover:text-text transition-colors">
+              <Link to="/docs" className="text-sm text-text-muted hover:text-text transition-colors">
                 Documentation
-              </a>
-              <a href="#" className="text-sm text-text-muted hover:text-text transition-colors">
-                API
-              </a>
-              <a href="#" className="text-sm text-text-muted hover:text-text transition-colors">
+              </Link>
+              <Link to="/privacy" className="text-sm text-text-muted hover:text-text transition-colors">
                 Privacy
-              </a>
-              <a href="#" className="text-sm text-text-muted hover:text-text transition-colors">
+              </Link>
+              <Link to="/terms" className="text-sm text-text-muted hover:text-text transition-colors">
                 Terms
-              </a>
+              </Link>
             </div>
             <div className="flex items-center gap-4">
-              <a href="#" className="text-xs text-text-dim hover:text-text transition-colors">
+              <Link to="/docs" className="text-xs text-text-dim hover:text-text transition-colors">
                 Docs
-              </a>
+              </Link>
               <a href="#" className="text-xs text-text-dim hover:text-text transition-colors">
                 GitHub
               </a>

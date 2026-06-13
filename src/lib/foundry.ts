@@ -6,11 +6,7 @@ import { MODE_INSTRUCTIONS, STAGE_LABELS, type ModeKey, type StageKey } from '@/
 const FOUNDRY_ENDPOINT = import.meta.env.VITE_FOUNDRY_ENDPOINT as string | undefined
 const isConfigured = !!FOUNDRY_ENDPOINT
 
-const agentPath = (() => {
-  try { return FOUNDRY_ENDPOINT ? new URL(FOUNDRY_ENDPOINT).pathname : '' } catch { return '' }
-})()
-
-const INFERENCE_URL = `/api/ai${agentPath}?api-version=v1`
+const INFERENCE_URL = '/api/proxy'
 
 // ─── Limits ───────────────────────────────────────────────────────────────────
 
@@ -153,7 +149,7 @@ async function fetchAgent(input: string, signal?: AbortSignal): Promise<Response
 
 async function callAgent(input: string, mode: ModeKey, signal?: AbortSignal): Promise<string> {
   if (!isConfigured) {
-    const message = 'Foundry AI is not configured. Set VITE_FOUNDRY_ENDPOINT and VITE_FOUNDRY_API_KEY.'
+    const message = 'Foundry AI is not configured. Set VITE_FOUNDRY_ENDPOINT in your environment variables.'
     getStore().setError(message)
     throw new FoundryError(message)
   }
@@ -167,6 +163,7 @@ async function callAgent(input: string, mode: ModeKey, signal?: AbortSignal): Pr
       res = await fetchAgent(input, signal)
     }
   } catch (err) {
+    console.error('[Foundry] fetch failed:', err)
     const message = err instanceof DOMException && err.name === 'AbortError'
       ? 'Request was cancelled'
       : 'Network error — is the dev server running with `npm run dev`?'
@@ -175,7 +172,10 @@ async function callAgent(input: string, mode: ModeKey, signal?: AbortSignal): Pr
   }
 
   if (!res.ok) {
-    const message = `Foundry API error: ${res.status} ${res.statusText}`
+    let detail = ''
+    try { detail = await res.text() } catch { /* ignore */ }
+    console.error(`[Foundry] API error ${res.status}:`, detail)
+    const message = `Foundry API error: ${res.status} ${res.statusText}${detail ? ` — ${detail.slice(0, 200)}` : ''}`
     getStore().setError(message)
     throw new FoundryError(message)
   }

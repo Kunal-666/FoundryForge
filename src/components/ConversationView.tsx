@@ -154,8 +154,9 @@ export function ConversationView({ sessionId, onBack }: ConversationViewProps) {
         content: response,
         timestamp: new Date(),
       })
-    } catch {
+    } catch (err) {
       if (userCancelledRef.current) return
+      console.error('[ConversationView] AI call failed:', err)
       addMessage(sessionId, {
         id: generateId(),
         role: 'assistant',

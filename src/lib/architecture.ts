@@ -565,6 +565,7 @@ function cleanLine(line: string): string {
   return line
     .replace(/^[>*\-\u2022]+\s*/, '')
     .replace(/^\d+[\.)\]]\s*/, '')
+    .replace(/\*\*/g, '')
     .replace(/^[^:]+:\s*/, '')
     .trim()
 }
@@ -1018,11 +1019,12 @@ function deriveSecurityRecommendations(securityText: string, allText: string): s
   return dedupe(fallback).slice(0, 5)
 }
 
-function deriveDatabaseSummary(databaseText: string, tech: TechStack, features: string[], roles: string[], estimatedTables: number): DatabaseSummary {
-  const typeMatch = databaseText.match(/database(?: type)?:\s*(.+?)(?=\n|$)/i)
-  const type = typeMatch?.[1]?.trim() || tech.database.split(' + ')[0] || 'PostgreSQL'
-  const entities = collectLabeledItems(databaseText, [/entities/i, /tables/i, /models?/i, /collections?/i])
-  const relationships = collectSentences(databaseText, [/relations?/i, /relationships?/i, /foreign key/i, /many-to-many/i, /one-to-many/i])
+function deriveDatabaseSummary(databaseText: string, tech: TechStack, features: string[], roles: string[], estimatedTables: number, broaderCorpus?: string): DatabaseSummary {
+  const source = databaseText || broaderCorpus || ''
+  const typeMatch = source.match(/(?:\*{0,2})database(?:\s+type)?\*{0,2}:\s*(.+?)(?=\n|$)/i)
+  const type = typeMatch?.[1]?.replace(/\*\*/g, '').trim() || tech.database.split(' + ')[0] || 'PostgreSQL'
+  const entities = collectLabeledItems(source, [/entities/i, /tables/i, /models?/i, /collections?/i])
+  const relationships = collectSentences(source, [/relations?/i, /relationships?/i, /foreign key/i, /many-to-many/i, /one-to-many/i])
   const fallbackEntities = dedupe([
     ...features.slice(0, 3).map((item) => item.replace(/\s+/g, ' ').trim()),
     ...roles.slice(0, 2).map((item) => `${item} Record`),
@@ -1396,6 +1398,12 @@ function applyScopeOverrides(data: ArchitectureData, config?: WizardTechConfig):
         Storage: ['Not Required'],
         Deployment: ['Not Required'],
       },
+      databaseSummary: {
+        type: 'Not Required',
+        entities: [],
+        relationships: [],
+        estimatedTables: '0',
+      },
       architectureRecommendations: data.architectureRecommendations.filter(
         r => !OUT_OF_SCOPE_AREAS.has(r.area),
       ),
@@ -1482,7 +1490,7 @@ export function parseArchitectureData(session: Session, wizardConfig?: WizardTec
   const generatorCompatibility = deriveCompatibility()
   const executionStrategy = deriveExecutionStrategy()
   const roadmap = deriveRoadmap(roadmapText, features, projectScale, domainProfile)
-  const databaseSummary = deriveDatabaseSummary(databaseText, tech, features, roles, metrics.estimatedDbTables)
+  const databaseSummary = deriveDatabaseSummary(databaseText, tech, features, roles, metrics.estimatedDbTables, corpus)
 
   const servicesGraph = buildServiceGraph(tech, allText)
   const confidence: 'high' | 'medium' | 'low' = session.timeline.length === 0

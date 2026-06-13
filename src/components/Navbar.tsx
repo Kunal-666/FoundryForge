@@ -63,7 +63,7 @@ export function Navbar() {
                   Sign In
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/dashboard">
                 <Button size="sm" className="shadow-lg shadow-primary/20">
                   Get Started
                 </Button>
