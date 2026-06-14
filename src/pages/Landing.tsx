@@ -290,7 +290,7 @@ export function Landing() {
               <X className="h-4 w-4" />
             </button>
             <iframe
-              src="https://drive.google.com/file/d/1AzmQqR5MTxhmM9GC1LAmH-_XboT9H3P3/preview"
+              src="https://drive.google.com/file/d/1p0czgyFl5FurVILQyHu2zCg8KTB4ERZ2/preview"
               className="w-full aspect-video bg-black"
               allow="autoplay"
               allowFullScreen
