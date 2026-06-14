@@ -59,7 +59,7 @@ export function SessionCard({ item, onClick, isActive, onDelete }: SessionCardPr
           <p className="mt-0.5 text-xs text-text-dim">
             {truncate(item.preview, 60)}
           </p>
-          <div className="mt-1.5 flex items-center gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] text-text-dim">
               {formatDate(item.createdAt)}
             </span>
