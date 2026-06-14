@@ -27,7 +27,6 @@ dist-ssr
 .vercel
 
 # Large media files — hosted on Firebase Storage, not in git
-*.mp4
 *.mov
 *.avi
 *.webm

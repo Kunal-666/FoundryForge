@@ -177,20 +177,22 @@ export function ConversationView({ sessionId, onBack }: ConversationViewProps) {
     const store = useSessionStore.getState()
     const s = store.sessions[sessionId]
     if (!s) return
+
+    // Architecture mode sessions handle initialization via the wizard and timeline analysis,
+    // not through general message submissions.
+    if (s.mode === 'architecture') {
+      const wizardState = useWizardStore.getState()
+      if (!wizardState.completed[sessionId]) {
+        setShowWizard(true)
+      }
+      return
+    }
+
     if (s.messages.length !== 1) return
     if (s.messages[0].role !== 'user') return
     if (s.messages.some(m => m.role === 'assistant')) return
 
     autoSentSessions.add(sessionId)
-
-    if (s.mode === 'architecture') {
-      const wizardState = useWizardStore.getState()
-      if (!wizardState.completed[sessionId]) {
-        setShowWizard(true)
-        return
-      }
-    }
-
     handleSubmit(s.messages[0].content, undefined, true)
   }, [sessionId])
 

@@ -49,6 +49,9 @@ function getModeInstruction(mode: ModeKey): string {
 
 /** Trims context to the tail, preserving the most recent content. */
 function trimContext(text: string, mode: ModeKey): string {
+  if (mode === 'general') {
+    return text
+  }
   const max = mode === 'codegen' ? MAX_CONTEXT_CODEGEN : MAX_CONTEXT_DEFAULT
   return text.length > max ? text.slice(-max) : text
 }
@@ -82,12 +85,12 @@ export function normalizeOutput(text: string, mode: ModeKey = 'general'): string
   // Strip citation markers and normalize line endings
   let t = text.replace(/\r\n/g, '\n').replace(/【[^】]*】/g, '')
 
-  if (mode === 'codegen') {
-    // Codegen: structural fixes only — never dedup or cap lines in generated code
+  if (mode === 'general' || mode === 'codegen') {
+    // General & Codegen: structural fixes only — never dedup or cap lines
     t = t
       .replace(/([^\n])## /g, '$1\n## ')
       .replace(/([^\n])- /g, '$1\n- ')
-      .replace(/([^\n])(\d+[\.\)]) /g, '$1\n$2 ')
+      .replace(/([^\n\d])(\d+[\.\)]) /g, '$1\n$2 ')
       .replace(/^#{3,}/gm, '##')
       .replace(/\*\*\*\*/g, '**')
     return t.replace(/\n{3,}/g, '\n\n').trim()
@@ -111,7 +114,7 @@ export function normalizeOutput(text: string, mode: ModeKey = 'general'): string
     .replace(/([^\n])## /g, '$1\n## ')
     .replace(/([^\n])(\*\*[A-Z][a-zA-Z\s/]+\*\*)/g, '$1\n$2')
     .replace(/([^\n])- /g, '$1\n- ')
-    .replace(/([^\n])(\d+[\.\)]) /g, '$1\n$2 ')
+    .replace(/([^\n\d])(\d+[\.\)]) /g, '$1\n$2 ')
 
   // 4. Post-structural fuzzy dedup
   t = dedupLines(t)

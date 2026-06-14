@@ -52,11 +52,11 @@ export function SessionCard({ item, onClick, isActive, onDelete }: SessionCardPr
             <MessageSquare className="h-3.5 w-3.5 text-text-dim" />
           )}
         </div>
-        <div className="min-w-0 flex-1 pr-6">
-          <p className="text-sm font-medium text-text truncate">
+        <div className="min-w-0 flex-1 pr-8">
+          <p className="text-sm font-medium text-text truncate" title={item.title}>
             {item.title}
           </p>
-          <p className="mt-0.5 text-xs text-text-dim">
+          <p className="mt-0.5 text-xs text-text-dim truncate" title={item.preview}>
             {truncate(item.preview, 60)}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">

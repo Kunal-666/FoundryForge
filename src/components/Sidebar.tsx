@@ -177,7 +177,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
 
       {/* Desktop sidebar */}
       <motion.aside
-        animate={{ width: isCollapsed ? 64 : 280 }}
+        animate={{ width: isCollapsed ? 64 : 330 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="relative hidden h-full flex-col border-r border-border bg-surface/50 lg:flex"
       >
@@ -189,7 +189,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
         initial={{ x: '-100%' }}
         animate={{ x: mobileOpen ? 0 : '-100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r border-border bg-surface shadow-2xl lg:hidden"
+        className="fixed inset-y-0 left-0 z-50 flex h-full w-80 flex-col border-r border-border bg-surface shadow-2xl lg:hidden"
       >
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2" onClick={onMobileClose}>
