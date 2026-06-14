@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Expand, Minimize2, Rocket, Search, Sparkles } from 'lucide-react'
+import { Expand, Minimize2, Search, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeroRequestCard } from './HeroRequestCard'
 import { ProgressTracker } from './ProgressTracker'
@@ -182,22 +182,6 @@ export function ArchitectureView({ session, sessionId, onFollowUp, onRegenerate 
         </>
       )}
 
-      {session.status === 'completed' && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="fixed bottom-6 left-1/4 z-50 -translate-x-1/2"
-        >
-          <Button
-            onClick={() => scrollToSection('overview')}
-            size="lg"
-            className="h-12 gap-3 rounded-xl bg-primary px-6 text-sm font-semibold shadow-2xl shadow-primary/30 hover:bg-primary-hover hover:shadow-primary/40 transition-all"
-          >
-            <Rocket className="h-5 w-5" />
-            Review Blueprint
-          </Button>
-        </motion.div>
-      )}
     </div>
   )
 }
