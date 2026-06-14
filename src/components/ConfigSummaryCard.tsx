@@ -36,7 +36,7 @@ export function ConfigSummaryCard({ answers, onEdit, onStart }: ConfigSummaryCar
           </p>
         </div>
 
-        <div className="divide-y divide-border/30 px-5 py-2">
+        <div className="divide-y divide-border/30 px-5 py-2 max-h-[380px] overflow-y-auto">
           {visibleFields.map((field) => {
             const raw = answers[field.key]
             const isEmpty = raw == null || (Array.isArray(raw) && raw.length === 0)

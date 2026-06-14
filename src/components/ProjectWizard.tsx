@@ -169,10 +169,10 @@ export function ProjectWizard({ sessionId, prompt, onComplete, onDismiss }: Proj
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
+        className="relative mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/50 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-border/50 px-5 py-3 shrink-0">
           <div className="flex items-center gap-2">
             <Settings2 className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-text">
@@ -201,7 +201,7 @@ export function ProjectWizard({ sessionId, prompt, onComplete, onDismiss }: Proj
         )}
 
         {/* Body */}
-        <div className="px-5 py-5">
+        <div className="flex-1 overflow-y-auto px-5 py-5">
           <AnimatePresence mode="wait">
             {isReview ? (
               <ConfigSummaryCard
@@ -279,7 +279,7 @@ export function ProjectWizard({ sessionId, prompt, onComplete, onDismiss }: Proj
 
         {/* Footer – only show when not on review screen */}
         {!isReview && (
-          <div className="flex items-center justify-between border-t border-border/50 px-5 py-3">
+          <div className="flex items-center justify-between border-t border-border/50 px-5 py-3 shrink-0">
             <Button
               variant="ghost"
               size="sm"
