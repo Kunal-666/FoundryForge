@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import demoVideo from '@/assets/FoundryForge - AI Software Architect - Google Chrome 2026-06-14 01-28-10.mp4'
+
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules'
 import 'swiper/css'
@@ -292,11 +292,12 @@ export function Landing() {
             >
               <X className="h-4 w-4" />
             </button>
-            <video
-              src={demoVideo}
-              controls
-              autoPlay
+            <iframe
+              src="https://drive.google.com/file/d/1AzmQqR5MTxhmM9GC1LAmH-_XboT9H3P3/preview"
               className="w-full aspect-video bg-black"
+              allow="autoplay"
+              allowFullScreen
+              title="FoundryForge Demo"
             />
           </motion.div>
         </motion.div>
