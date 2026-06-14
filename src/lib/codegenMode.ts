@@ -99,7 +99,7 @@ Never import from src/assets/. Never reference a local file path that isn't gene
 - **External Packages**: Every third-party library imported in any file (e.g., \`lucide-react\`, \`recharts\`, \`framer-motion\`, \`canvas-confetti\`, \`clsx\`, \`tailwind-merge\`, \`axios\`, \`@tanstack/react-query\`) MUST be explicitly listed under \`dependencies\` in the generated \`package.json\` with a valid, stable semantic version.
 - **Routing & React Router**: If the project uses routing, navigation, or routes, you MUST explicitly include \`react-router-dom\` in \`package.json\` dependencies (e.g., \`"react-router-dom": "^6.22.0"\`) and set up the routes properly using router providers in \`main.tsx\` or \`App.tsx\`. Never use routing imports without declaring \`react-router-dom\` in dependencies.
 - **TypeScript Types**: For TypeScript projects, if an imported package requires separate \`@types/\` packages (e.g., \`@types/canvas-confetti\`), list them under \`devDependencies\` in \`package.json\`.
-- **Lucide Icons**: Always import Lucide icons from \`'lucide-react'\` (e.g., \`import { Zap, Mail } from 'lucide-react'\`). Never import from internal sub-folders (like \`lucide-react/dist/...\`).
+- **Lucide Icons**: Always import Lucide icons from \`'lucide-react'\` (e.g., \`import { Zap, Mail } from 'lucide-react'\`). Never import from internal sub-folders (like \`lucide-react/dist/...\`). Note that Lucide brand icon exports capitalize only the first letter of the brand name (e.g., use \`Github\` instead of \`GitHub\`, \`Linkedin\` instead of \`LinkedIn\`, \`Youtube\` instead of \`YouTube\`).
 - **Relative vs Aliased Paths**:
   - Prefer relative import paths (e.g., \`../components/Button\` or \`./utils/helpers\`) for simplicity and reliability.
   - If you use path aliases (e.g., \`@/components/Button\`), you MUST configure the matching path alias in BOTH \`tsconfig.json\` (under \`compilerOptions.paths\`) and \`vite.config.ts\` (using \`vite-tsconfig-paths\` or path resolution). If you do not generate or configure these, DO NOT use path aliases.
@@ -113,7 +113,7 @@ Before finalizing output, verify:
 - [ ] package.json present with all dependencies and dev scripts
 - [ ] Every third-party library imported in code (including \`react-router-dom\`, \`lucide-react\`, etc.) is listed in \`package.json\` dependencies
 - [ ] If path aliases (\`@/...\`) are used, \`vite.config.ts\` and \`tsconfig.json\` are fully configured to support them; otherwise, relative paths are used
-- [ ] Lucide icons are imported directly from 'lucide-react' and not from internal paths
+- [ ] Lucide icons are imported directly from 'lucide-react' using correct brand capitalization (e.g., Github, Linkedin), and not from internal paths
 - [ ] vite.config.ts/js present
 - [ ] index.html present
 - [ ] main.tsx/jsx present as entry point
