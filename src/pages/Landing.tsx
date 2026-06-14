@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import demoVideo from '@/assets/FoundryForge - AI Software Architect - Google Chrome 2026-06-14 01-28-10.mp4'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules'
 import 'swiper/css'
@@ -18,6 +19,8 @@ import {
   Map,
   Zap,
   ChevronRight,
+  Play,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FeatureCard } from '@/components/FeatureCard'
@@ -36,6 +39,7 @@ const workflowSteps = [
 ]
 
 export function Landing() {
+  const [showDemo, setShowDemo] = useState(false)
   useEffect(() => { document.title = 'FoundryForge - AI Software Architect' }, [])
   return (
     <div className="min-h-screen bg-background">
@@ -91,7 +95,8 @@ export function Landing() {
                 Start Building <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" className="gap-2" onClick={() => setShowDemo(true)}>
+              <Play className="h-4 w-4 fill-current" />
               Watch Demo
             </Button>
           </motion.div>
@@ -263,6 +268,39 @@ export function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Demo Video Modal */}
+      {showDemo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setShowDemo(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="relative w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowDemo(false)}
+              className="absolute top-3 right-3 z-10 flex items-center justify-center h-8 w-8 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+              aria-label="Close demo"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <video
+              src={demoVideo}
+              controls
+              autoPlay
+              className="w-full aspect-video bg-black"
+            />
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   )
 }
