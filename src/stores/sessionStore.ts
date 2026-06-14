@@ -3,7 +3,7 @@ import type { Session, Message, TimelineStage, SessionMode } from '@/types'
 import { getTimelineStages } from '@/data/mock'
 import { generateId } from '@/lib/utils'
 import { db, isConfigured } from '@/lib/firebase'
-import { doc, setDoc, collection, getDocs, query, where } from 'firebase/firestore'
+import { doc, setDoc, collection, getDocs, query, where, deleteDoc } from 'firebase/firestore'
 
 function isAutoSaveEnabled(): boolean {
   try {
@@ -61,7 +61,9 @@ interface SessionState {
   loadSessions: (sessions: Session[]) => void
   loadFromFirestore: (userId: string) => Promise<void>
   refreshFromStorage: () => void
+  deleteSession: (id: string) => Promise<void>
 }
+
 
 function stripUndefined(obj: unknown): unknown {
   if (Array.isArray(obj)) {
@@ -245,4 +247,27 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   refreshFromStorage: () => {
     set({ sessions: loadFromStorage() })
   },
+
+  deleteSession: async (id) => {
+    const session = get().sessions[id]
+    
+    // 1. Remove from local state and LocalStorage
+    set((state) => {
+      const { [id]: _, ...remaining } = state.sessions
+      saveToStorage(remaining)
+      
+      const currentSessionId = state.currentSessionId === id ? null : state.currentSessionId
+      return { sessions: remaining, currentSessionId }
+    })
+
+    // 2. Remove from Firestore if configured
+    if (isConfigured && db && session?.userId) {
+      try {
+        await deleteDoc(doc(db, 'sessions', id))
+      } catch (e) {
+        console.error('[sessionStore] Failed to delete session from Firestore', e)
+      }
+    }
+  },
 }))
+

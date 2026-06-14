@@ -97,6 +97,7 @@ Never import from src/assets/. Never reference a local file path that isn't gene
 ### Dependency & Import Management
 
 - **External Packages**: Every third-party library imported in any file (e.g., \`lucide-react\`, \`recharts\`, \`framer-motion\`, \`canvas-confetti\`, \`clsx\`, \`tailwind-merge\`, \`axios\`, \`@tanstack/react-query\`) MUST be explicitly listed under \`dependencies\` in the generated \`package.json\` with a valid, stable semantic version.
+- **Tailwind CSS Stack**: If the generated project uses Tailwind CSS (requiring \`postcss.config.js\` or \`tailwind.config.js\`), you MUST include \`tailwindcss\`, \`postcss\`, and \`autoprefixer\` in the \`devDependencies\` of \`package.json\` (e.g., \`"tailwindcss": "^3.4.1"\`, \`"postcss": "^8.4.31"\`, \`"autoprefixer": "^10.4.16"\`). Do not omit these configuration packages.
 - **Routing & React Router**: If the project uses routing, navigation, or routes, you MUST explicitly include \`react-router-dom\` in \`package.json\` dependencies (e.g., \`"react-router-dom": "^6.22.0"\`) and set up the routes properly using router providers in \`main.tsx\` or \`App.tsx\`. Never use routing imports without declaring \`react-router-dom\` in dependencies.
 - **TypeScript Types**: For TypeScript projects, if an imported package requires separate \`@types/\` packages (e.g., \`@types/canvas-confetti\`), list them under \`devDependencies\` in \`package.json\`.
 - **Lucide Icons**: Always import Lucide icons from \`'lucide-react'\` (e.g., \`import { Zap, Mail } from 'lucide-react'\`). Never import from internal sub-folders (like \`lucide-react/dist/...\`). Note that Lucide brand icon exports capitalize only the first letter of the brand name (e.g., use \`Github\` instead of \`GitHub\`, \`Linkedin\` instead of \`LinkedIn\`, \`Youtube\` instead of \`YouTube\`).
@@ -112,6 +113,7 @@ Never import from src/assets/. Never reference a local file path that isn't gene
 Before finalizing output, verify:
 - [ ] package.json present with all dependencies and dev scripts
 - [ ] Every third-party library imported in code (including \`react-router-dom\`, \`lucide-react\`, etc.) is listed in \`package.json\` dependencies
+- [ ] If Tailwind CSS is used, \`tailwindcss\`, \`postcss\`, and \`autoprefixer\` are listed in \`devDependencies\` or \`dependencies\` of \`package.json\`
 - [ ] If path aliases (\`@/...\`) are used, \`vite.config.ts\` and \`tsconfig.json\` are fully configured to support them; otherwise, relative paths are used
 - [ ] Lucide icons are imported directly from 'lucide-react' using correct brand capitalization (e.g., Github, Linkedin), and not from internal paths
 - [ ] vite.config.ts/js present

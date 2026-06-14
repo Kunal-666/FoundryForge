@@ -30,7 +30,7 @@ interface HistoryState {
   items: HistoryItem[]
   isLoading: boolean
   addToHistory: (item: HistoryItem) => void
-  removeFromHistory: (id: string) => void
+  removeFromHistory: (id: string) => Promise<void>
   clearHistory: () => void
   loadFromFirestore: (userId: string) => Promise<void>
   refreshFromStorage: () => void
@@ -45,10 +45,18 @@ export const useHistoryStore = create<HistoryState>((set) => ({
       items: [item, ...state.items],
     })),
 
-  removeFromHistory: (id) =>
+  removeFromHistory: async (id) => {
     set((state) => ({
       items: state.items.filter((i) => i.id !== id),
-    })),
+    }))
+
+    try {
+      const { useSessionStore } = await import('./sessionStore')
+      await useSessionStore.getState().deleteSession(id)
+    } catch (e) {
+      console.error('[historyStore] Failed to sync session deletion', e)
+    }
+  },
 
   clearHistory: () => {
     try { localStorage.removeItem(STORAGE_KEY) } catch (e) { console.error('[historyStore] Failed to clear history', e) }

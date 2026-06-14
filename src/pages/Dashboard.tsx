@@ -217,7 +217,7 @@ export function Dashboard() {
   const activeTab = searchParams.get('tab') || 'new'
   const activeSessionId = searchParams.get('session')
   const { createSession, setCurrentSession } = useSessionStore()
-  const { items: historyItems, isLoading: historyLoading, clearHistory, loadFromFirestore, refreshFromStorage } = useHistoryStore()
+  const { items: historyItems, isLoading: historyLoading, clearHistory, loadFromFirestore, refreshFromStorage, removeFromHistory } = useHistoryStore()
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -465,6 +465,7 @@ export function Dashboard() {
                         key={item.id}
                         item={item}
                         onClick={() => openSession(item.id)}
+                        onDelete={() => removeFromHistory(item.id)}
                       />
                     ))}
                   </div>

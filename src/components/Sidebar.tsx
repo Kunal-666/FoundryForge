@@ -31,7 +31,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
   const location = useLocation()
   const navigate = useNavigate()
   const { user, isMock, signOut } = useAuth()
-  const { items } = useHistoryStore()
+  const { items, removeFromHistory } = useHistoryStore()
   const [isCollapsed, setIsCollapsed] = useState(collapsed)
 
   const toggle = () => {
@@ -113,6 +113,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
                     key={item.id}
                     item={item}
                     onClick={() => { handleSessionClick(item.id); onMobileClose?.() }}
+                    onDelete={() => removeFromHistory(item.id)}
                   />
                 ))}
               </div>

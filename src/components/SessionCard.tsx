@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { cn, formatDate, truncate } from '@/lib/utils'
 import type { HistoryItem } from '@/types'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Loader2, Sparkles } from 'lucide-react'
+import { MessageSquare, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { MODE_CONFIG } from '@/data/mock'
 import { MODE_ICONS } from '@/data/constants'
 
@@ -10,9 +10,10 @@ interface SessionCardProps {
   item: HistoryItem
   onClick?: () => void
   isActive?: boolean
+  onDelete?: (e: React.MouseEvent) => void
 }
 
-export function SessionCard({ item, onClick, isActive }: SessionCardProps) {
+export function SessionCard({ item, onClick, isActive, onDelete }: SessionCardProps) {
   const statusMap = {
     idle: { label: 'Idle', variant: 'secondary' as const },
     thinking: { label: 'Thinking', variant: 'warning' as const },
@@ -25,11 +26,19 @@ export function SessionCard({ item, onClick, isActive }: SessionCardProps) {
   const ModeIcon = MODE_ICONS[item.mode] || Sparkles
 
   return (
-    <motion.button
+    <motion.div
       whileHover={{ x: 2 }}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick?.()
+        }
+      }}
       className={cn(
-        'group w-full rounded-lg border border-transparent px-3 py-2.5 text-left transition-all duration-200',
+        'group relative w-full cursor-pointer rounded-lg border border-transparent px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary/30',
         isActive
           ? 'bg-primary/10 border-primary/20'
           : 'hover:bg-surface-hover hover:border-border',
@@ -43,7 +52,7 @@ export function SessionCard({ item, onClick, isActive }: SessionCardProps) {
             <MessageSquare className="h-3.5 w-3.5 text-text-dim" />
           )}
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 pr-6">
           <p className="text-sm font-medium text-text truncate">
             {item.title}
           </p>
@@ -66,6 +75,20 @@ export function SessionCard({ item, onClick, isActive }: SessionCardProps) {
           </div>
         </div>
       </div>
-    </motion.button>
+
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(e)
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 hover:text-error hover:bg-surface-hover p-1.5 rounded-md transition-all duration-150 text-text-dim"
+          title="Delete session"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </motion.div>
   )
 }
+
