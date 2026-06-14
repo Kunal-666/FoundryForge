@@ -255,16 +255,13 @@ export function Landing() {
               <Link to="/docs" className="text-xs text-text-dim hover:text-text transition-colors">
                 Docs
               </Link>
-              <a href="#" className="text-xs text-text-dim hover:text-text transition-colors">
+              <a href="https://github.com/Kunal-666" target="_blank" rel="noopener noreferrer" className="text-xs text-text-dim hover:text-text transition-colors">
                 GitHub
-              </a>
-              <a href="#" className="text-xs text-text-dim hover:text-text transition-colors">
-                Twitter
               </a>
             </div>
           </div>
           <div className="mt-8 text-center text-xs text-text-dim">
-            &copy; {new Date().getFullYear()} FoundryForge. All rights reserved.
+            &copy; {new Date().getFullYear()} Kunal Gupta. All rights reserved.
           </div>
         </div>
       </footer>

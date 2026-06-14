@@ -1,6 +1,12 @@
 # FoundryForge 🛠️
 ### *AI-Powered Software Architect & Design Planner*
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-foundry--forge--alpha.vercel.app-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://foundry-forge-alpha.vercel.app/)
+
+🔗 **Production:** [https://foundry-forge-alpha.vercel.app/](https://foundry-forge-alpha.vercel.app/)
+
+---
+
 **FoundryForge** is an innovative, creative developer tool built for the **Agents League Hackathon – Creative Apps** track. It serves as an **Idea Brainstormer & Design Assistant** that helps software developers collaboratively plan, structure, and compliance-check their software ideas before writing code. 
 
 Instead of jumping straight to code generation, FoundryForge guides users through a structured, multi-step **8-Stage Reasoning Pipeline** (Requirements -> Clarification -> Design -> Database -> Folder Structure -> Security -> Development Roadmap -> Boilerplate Generation).
@@ -67,7 +73,7 @@ You can query your FoundryForge architectural index directly inside VS Code's Co
 "github.copilot.mcp": {
     "foundryforge-mcp": {
         "type": "sse",
-        "url": "https://<your-vercel-domain>.vercel.app/api/mcp/sse"
+        "url": "https://foundry-forge-alpha.vercel.app/api/mcp/sse"
       }
 }
 ```
